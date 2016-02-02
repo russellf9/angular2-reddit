@@ -12,10 +12,29 @@ class Article {
         this.votes = votes || 0;
     }
 
+    voteUp(): void {
+        this.votes += 1;
+    }
+
+    voteDown(): void {
+        this.votes -= 1;
+    }
+
+    domain(): string {
+        try {
+            const link: string = this.link.split('//')[1];
+
+
+            return link.split('/')[0];
+        } catch (err) {
+            return null;
+        }
+    }
 }
 
 @Component({
     selector: 'reddit-article',
+    inputs: ['article'],
     host: {
         class: 'row'
     },
@@ -34,6 +53,7 @@ class Article {
       <a class="ui large header" href="{{ article.link }}">
         {{ article.title }}
       </a>
+      <div class="meta">{{article.domain()}}</div>
       <ul class="ui big horizontal list voters">
         <li class="item">
           <a href (click)="voteUp()">
@@ -51,22 +71,16 @@ class Article {
     </div>
   `
 })
-
-
 class ArticleComponent {
     article: Article;
 
-    constructor() {
-        this.article = new Article('Angular 2', 'http://angular.io', 10);
-    }
-
-    voteUp() {
-        this.article.votes += 1;
+    voteUp(): boolean {
+        this.article.voteUp();
         return false;
     }
 
-    voteDown() {
-        this.article.votes -= 1;
+    voteDown(): boolean {
+        this.article.voteDown();
         return false;
     }
 }
@@ -94,17 +108,29 @@ class ArticleComponent {
     </form>
 
     <div class="ui grid posts">
-      <reddit-article>
+      <reddit-article
+        *ngFor="#article of articles"
+        [article]="article">
       </reddit-article>
     </div>
   `
 })
 class RedditApp {
+    articles: Article[];
+
     constructor() {
+        this.articles = [
+            new Article('Angular 2', 'http://angular.io', 3),
+            new Article('Fullstack', 'http://fullstack.io', 2),
+            new Article('Angular Homepage', 'http://angular.io', 1),
+        ];
     }
 
     addArticle(title: HTMLInputElement, link: HTMLInputElement): void {
         console.log(`Adding article title: ${title.value} and link: ${link.value}`);
+        this.articles.push(new Article(title.value, link.value, 0));
+        title.value = '';
+        link.value = '';
     }
 }
 
